@@ -151,18 +151,33 @@ impl_syn_item_helper!(syn::ItemTraitAlias);
 /// Helper function for accessing Abi information
 pub trait SynAbiHelpers {
     fn is_c(&self) -> bool;
+    fn calling_convention(&self) -> Option<String>;
     fn is_omitted(&self) -> bool;
+
+    fn is_rust(&self) -> bool {
+        self.calling_convention().map(|cc| {
+            match &cc[..] {
+                "Rust" => true,
+                "rust-intrinsic" => true,
+                _ => false
+            }
+        }).unwrap_or(true)
+    }
 }
 
 impl SynAbiHelpers for Option<syn::Abi> {
-    fn is_c(&self) -> bool {
-        if let Some(ref abi) = *self {
-            if let Some(ref lit_string) = abi.name {
-                return lit_string.value() == String::from("C");
-            }
-        }
-        false
+    fn calling_convention(&self) -> Option<String> {
+        self.as_ref()
+            .and_then(|abi| abi.name.as_ref())
+            .map(|name| name.value())
     }
+
+    fn is_c(&self) -> bool {
+        self.calling_convention()
+            .map(|cc| cc == String::from("C"))
+            .unwrap_or(false)
+    }
+
     fn is_omitted(&self) -> bool {
         if let Some(ref abi) = *self {
             abi.name.is_none()
@@ -173,6 +188,12 @@ impl SynAbiHelpers for Option<syn::Abi> {
 }
 
 impl SynAbiHelpers for syn::Abi {
+    fn calling_convention(&self) -> Option<String> {
+        self.name
+            .as_ref()
+            .map(|name| name.value())
+    }
+
     fn is_c(&self) -> bool {
         if let Some(ref lit_string) = self.name {
             lit_string.value() == String::from("C")

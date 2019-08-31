@@ -529,8 +529,8 @@ impl Parse {
         mod_cfg: Option<&Cfg>,
         item: &syn::ItemForeignMod,
     ) {
-        if !item.abi.is_c() {
-            info!("Skip {} - (extern block must be extern C).", crate_name);
+        if item.abi.is_rust() {
+            info!("Skip {} - (extern block must not a non-rust abi).", crate_name);
             return;
         }
 
@@ -579,7 +579,7 @@ impl Parse {
         }
 
         if let syn::Visibility::Public(_) = item.vis {
-            if item.is_no_mangle() && (item.sig.abi.is_omitted() || item.sig.abi.is_c()) {
+            if item.is_no_mangle() && !item.sig.abi.is_rust() {
                 let path = Path::new(item.sig.ident.to_string());
                 match Function::load(path, &item.sig, false, &item.attrs, mod_cfg) {
                     Ok(func) => {
@@ -603,15 +603,15 @@ impl Parse {
         } else {
             warn!("Skip {}::{} - (not `pub`).", crate_name, &item.sig.ident);
         }
-        if (item.sig.abi.is_omitted() || item.sig.abi.is_c()) && !item.is_no_mangle() {
+        if !item.sig.abi.is_rust() && !item.is_no_mangle() {
             warn!(
                 "Skip {}::{} - (`extern` but not `no_mangle`).",
                 crate_name, &item.sig.ident
             );
         }
-        if item.sig.abi.is_some() && !(item.sig.abi.is_omitted() || item.sig.abi.is_c()) {
+        if item.sig.abi.is_some() && item.sig.abi.is_rust() {
             warn!(
-                "Skip {}::{} - (non `extern \"C\"`).",
+                "Skip {}::{} - (not `extern \"C\"` or other non-rust abi).",
                 crate_name, &item.sig.ident
             );
         }
