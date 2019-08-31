@@ -529,8 +529,8 @@ impl Parse {
         mod_cfg: Option<&Cfg>,
         item: &syn::ItemForeignMod,
     ) {
-        if item.abi.is_rust() {
-            info!("Skip {} - (extern block must not a non-rust abi).", crate_name);
+        if !item.abi.is_c() {
+            info!("Skip {} - (extern block must be `extern \"C\"`).", crate_name);
             return;
         }
 

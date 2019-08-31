@@ -17,7 +17,7 @@ use bindgen::library::Library;
 use bindgen::monomorph::Monomorphs;
 use bindgen::rename::{IdentifierType, RenameRule};
 use bindgen::reserved;
-use bindgen::utilities::{find_first_some, IterHelpers};
+use bindgen::utilities::{find_first_some, IterHelpers, SynAbiHelpers};
 use bindgen::writer::{Source, SourceWriter};
 
 #[derive(Debug, Clone)]
@@ -26,6 +26,7 @@ pub struct Function {
     pub ret: Type,
     pub args: Vec<(String, Type)>,
     pub extern_decl: bool,
+    pub abi: Option<String>,
     pub cfg: Option<Cfg>,
     pub annotations: AnnotationSet,
     pub documentation: Documentation,
@@ -56,6 +57,7 @@ impl Function {
             ret,
             args,
             extern_decl,
+            abi: sig.abi.calling_convention(),
             cfg: Cfg::append(mod_cfg, Cfg::load(attrs)),
             annotations: AnnotationSet::load(attrs)?,
             documentation: Documentation::load(attrs),

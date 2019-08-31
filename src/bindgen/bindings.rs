@@ -160,6 +160,16 @@ impl Bindings {
             write!(out, "#include \"{}\"", include);
             out.new_line();
         }
+
+        write!(out, "{}",
+r"#if defined(_WIN32) && !defined(_WIN64)
+# define STDCALL __stdcall
+#else 
+# define STDCALL 
+#endif"
+        );
+        
+        out.new_line();
     }
 
     pub fn write<F: Write>(&self, file: F) {

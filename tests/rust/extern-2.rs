@@ -9,3 +9,7 @@ pub extern fn second()
 #[no_mangle]
 pub fn third()
 { }
+
+#[no_mangle]
+pub extern "stdcall" fn fourth()
+{ }

@@ -282,7 +282,7 @@ pub fn write_func<F: Write>(
     layout_vertical: bool,
     void_prototype: bool,
 ) {
-    CDecl::from_func(f, layout_vertical).write(out, Some(f.path().name()), void_prototype);
+    CDecl::from_func(f, layout_vertical).write(out, Some(&format!("{}{}", format_abi(f.abi.as_ref().map(|s| &s[..])), f.path().name())), void_prototype);
 }
 
 pub fn write_field<F: Write>(out: &mut SourceWriter<F>, t: &Type, ident: &str) {
@@ -291,4 +291,15 @@ pub fn write_field<F: Write>(out: &mut SourceWriter<F>, t: &Type, ident: &str) {
 
 pub fn write_type<F: Write>(out: &mut SourceWriter<F>, t: &Type) {
     CDecl::from_type(t).write(out, None, false);
+}
+
+pub fn format_abi(abi: Option<&str>) -> &'static str {
+    abi.map(|abi| {
+        match abi {
+            "C" => "",
+            "system" => "STDCALL ",
+            "stdcall" => "STDCALL ",
+            _ => ""
+        }
+    }).unwrap_or("")
 }
